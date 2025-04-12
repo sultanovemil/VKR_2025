@@ -5,6 +5,8 @@
 ## Структура
 - `experiments/yolov8n_training.ipynb` - обучение YOLOv8n
 - `experiments/ssd300_training.ipynb` - обучение SSD300_VGG16
+- `experiments/tesseract_exp.ipynb` - анализ работы Tesseract
+- `experiments/EasyOCR_exp` - анализ работы EasyOCR
 
 ## Требования
 - torch==2.0.0
