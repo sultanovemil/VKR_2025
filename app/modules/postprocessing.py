@@ -6,24 +6,33 @@ from difflib import get_close_matches
 
 def process_fio(raw_fio):
     """Очистка и нормализация ФИО"""
+    if not raw_fio:
+        return None
     
-    # 1. Заменяем переносы строк на пробелы
-    unified = raw_fio.replace('\n', ' ')
+    # Слова для удаления
+    stop_words = {'фамилия', 'имя', 'отчество'}
     
-    # 2. Оставляем только кириллицу, пробелы и дефисы
-    cleaned = re.sub(r'[^а-яёА-ЯЁ -]', '', unified)
+    # 1. Заменяем переносы строк на пробелы и приводим к нижнему регистру
+    unified = raw_fio.replace('\n', ' ').lower()
     
-    # 3. Удаляем двойные пробелы и обрезаем краевые
+    # 2. Удаляем служебные слова
+    words = [word for word in unified.split() if word not in stop_words]
+    filtered_text = ' '.join(words)
+    
+    # 3. Оставляем только кириллицу, пробелы и дефисы
+    cleaned = re.sub(r'[^а-яё -]', '', filtered_text)
+    
+    # 4. Удаляем двойные пробелы и обрезаем краевые
     cleaned = ' '.join(cleaned.split())
     
-    # 4. Капитализируем каждое слово (с учётом возможных двойных фамилий)
+    # 5. Капитализируем каждое слово (с учётом двойных фамилий)
     capitalized = ' '.join(
         part.capitalize() 
         for word in cleaned.split(' ')
-        for part in word.split('-')  # Обрабатываем двойные фамилии
+        for part in word.split('-')
     )
     
-    # 5. Удаляем одиночные буквы
+    # 6. Удаляем одиночные буквы
     result = ' '.join(word for word in capitalized.split() if len(word) > 1)
     
     return result if len(result) >= 3 else None
@@ -31,8 +40,10 @@ def process_fio(raw_fio):
 
 def process_city_name(raw_city):
     """Очистка и нормализация названия города"""
+    if not raw_city:
+        return None
 
-    # 1. Удаление всех небуквенных символов, кроме дефиса и пробелов
+    # 1. Удаление всех небуквенных символов, кроме дефисов и пробелов
     cleaned = re.sub(r"[^а-яёА-ЯЁ -]", "", raw_city.strip())
 
     # 2. Удаление префиксов типа "г."
@@ -41,9 +52,17 @@ def process_city_name(raw_city):
     # 3. Удаление двойных пробелов и обрезка краевых
     cleaned = " ".join(cleaned.split())
 
-    # 4. Приведение к нормальному регистру (первая буква заглавная)
+    # 4. Приведение к нормальному регистру (каждое слово и часть после дефиса с заглавной)
     if cleaned:
-        cleaned = cleaned.capitalize()
+        # Разбиваем на слова и части через дефис
+        parts = []
+        for word in cleaned.split():
+            if '-' in word:
+                word_parts = [part.capitalize() for part in word.split('-')]
+                parts.append('-'.join(word_parts))
+            else:
+                parts.append(word.capitalize())
+        cleaned = ' '.join(parts)
 
     return cleaned if cleaned else None
 
